@@ -1,0 +1,6 @@
+PySide6>=6.7
+qt-material>=2.14
+requests>=2.31
+cryptography>=42.0
+reportlab>=4.1
+anthropic>=0.34

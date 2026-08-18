@@ -1,0 +1,35 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+*.db
+*.egg-info/
+build/
+dist/
+
+# Node / frontend
+node_modules/
+frontend/dist/
+
+# Env files (never commit secrets)
+.env
+.env.local
+
+# Desktop-App-Artefakte (falls im selben Repo)
+JobAssistent.spec.bak
+
+# Persoenliche Dokumente - duerfen NIE ins Repo (siehe profil_beispiel.md-Prinzip)
+Sebastian_Zurel_Lebenslauf.pdf
+Sebastian_Zurel_Anlagen.pdf
+*_Lebenslauf.pdf
+*_Anlagen.pdf
+*_Zeugnis*.pdf
+
+# Claude Code Session-Daten
+.claude/
+
+# OS/editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

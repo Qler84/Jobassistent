@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Job-Assistent · Bewerbungen</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = { theme: { extend: { colors: {
+    primary: { DEFAULT: '#1D6FD1', dark: '#0C4A93', light: '#EAF3FD' },
+  } } } }
+</script>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+  .icon { width: 20px; height: 20px; stroke-width: 1.8; }
+  .badge { font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 999px; white-space: nowrap; }
+</style>
+</head>
+<body class="bg-white text-slate-800 min-h-screen">
+
+<header class="lg:hidden flex items-center justify-between px-4 h-14 border-b border-slate-200 sticky top-0 bg-white z-20">
+  <div class="flex items-center gap-2">
+    <div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white font-bold text-sm">JA</div>
+    <span class="font-semibold text-slate-800">Job-Assistent</span>
+  </div>
+</header>
+
+<div class="flex">
+  <aside class="hidden lg:flex flex-col w-64 h-screen sticky top-0 border-r border-slate-200 px-4 py-6">
+    <div class="flex items-center gap-2 px-2 mb-8">
+      <div class="w-9 h-9 rounded-lg bg-primary flex items-center justify-center text-white font-bold">JA</div>
+      <span class="font-semibold text-lg text-slate-800">Job-Assistent</span>
+    </div>
+    <nav class="flex flex-col gap-1">
+      <a href="01-dashboard.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 hover:bg-slate-50">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+        Dashboard
+      </a>
+      <a href="02-stellensuche.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 hover:bg-slate-50">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        Stellensuche
+      </a>
+      <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary-light text-primary-dark font-medium">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 7 10 6 10-6"/></svg>
+        Bewerbungen
+      </a>
+      <a href="05-profil.html" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 hover:bg-slate-50">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a7 7 0 0 1 14 0v1"/></svg>
+        Profil
+      </a>
+      <a href="#" class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 hover:bg-slate-50">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        Einstellungen
+      </a>
+    </nav>
+  </aside>
+
+  <main class="flex-1 px-4 py-6 lg:px-10 lg:py-8 pb-24 lg:pb-8 max-w-6xl">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-1">
+      <h1 class="text-2xl font-semibold text-slate-800">Bewerbungen</h1>
+      <button class="flex items-center gap-2 text-sm text-primary font-medium border border-primary/30 rounded-lg px-3 py-2 hover:bg-primary-light self-start sm:self-auto">
+        <svg class="icon w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+        Postfach jetzt prüfen
+      </button>
+    </div>
+    <p class="text-slate-500 mb-6">Alle versendeten Bewerbungen und ihr aktueller Status.</p>
+
+    <!-- Filter chips -->
+    <div class="flex flex-wrap gap-2 mb-5">
+      <button class="text-xs font-medium px-3 py-1.5 rounded-full bg-primary text-white">Alle (14)</button>
+      <button class="text-xs font-medium px-3 py-1.5 rounded-full border border-slate-200 text-slate-600 hover:bg-slate-50">Versendet</button>
+      <button class="text-xs font-medium px-3 py-1.5 rounded-full border border-slate-200 text-slate-600 hover:bg-slate-50">Einladung</button>
+      <button class="text-xs font-medium px-3 py-1.5 rounded-full border border-slate-200 text-slate-600 hover:bg-slate-50">Absage</button>
+      <button class="text-xs font-medium px-3 py-1.5 rounded-full border border-slate-200 text-slate-600 hover:bg-slate-50">Keine Rückmeldung</button>
+    </div>
+
+    <!-- Desktop table -->
+    <div class="hidden md:block border border-slate-200 rounded-xl overflow-hidden">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="bg-slate-50 text-slate-500 text-left">
+            <th class="px-4 py-3 font-medium">Titel</th>
+            <th class="px-4 py-3 font-medium">Firma</th>
+            <th class="px-4 py-3 font-medium">Status</th>
+            <th class="px-4 py-3 font-medium">Quelle</th>
+            <th class="px-4 py-3 font-medium">Versendet am</th>
+            <th class="px-4 py-3 font-medium">Aktionen</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100">
+          <tr>
+            <td class="px-4 py-3 font-medium text-slate-800">Kaufmann Versicherung (m/w/d)</td>
+            <td class="px-4 py-3 text-slate-600">Allianz SE</td>
+            <td class="px-4 py-3"><span class="badge bg-emerald-50 text-emerald-700">Einladung</span></td>
+            <td class="px-4 py-3 text-slate-500">Auto</td>
+            <td class="px-4 py-3 text-slate-500">12.08.2026</td>
+            <td class="px-4 py-3"><button class="text-primary font-medium">Details</button></td>
+          </tr>
+          <tr>
+            <td class="px-4 py-3 font-medium text-slate-800">IT-Systemadministrator</td>
+            <td class="px-4 py-3 text-slate-600">Bosch GmbH</td>
+            <td class="px-4 py-3"><span class="badge bg-primary-light text-primary-dark">Versendet</span></td>
+            <td class="px-4 py-3 text-slate-500">Manuell</td>
+            <td class="px-4 py-3 text-slate-500">14.08.2026</td>
+            <td class="px-4 py-3"><button class="text-primary font-medium">Details</button></td>
+          </tr>
+          <tr>
+            <td class="px-4 py-3 font-medium text-slate-800">Marketing Manager</td>
+            <td class="px-4 py-3 text-slate-600">Adidas AG</td>
+            <td class="px-4 py-3"><span class="badge bg-rose-50 text-rose-600">Absage</span></td>
+            <td class="px-4 py-3 text-slate-500">Auto</td>
+            <td class="px-4 py-3 text-slate-500">10.08.2026</td>
+            <td class="px-4 py-3"><button class="text-primary font-medium">Details</button></td>
+          </tr>
+          <tr>
+            <td class="px-4 py-3 font-medium text-slate-800">Controller (m/w/d)</td>
+            <td class="px-4 py-3 text-slate-600">BASF SE</td>
+            <td class="px-4 py-3"><span class="badge bg-slate-100 text-slate-600">Keine Rückmeldung</span></td>
+            <td class="px-4 py-3 text-slate-500">Manuell</td>
+            <td class="px-4 py-3 text-slate-500">02.08.2026</td>
+            <td class="px-4 py-3"><button class="text-primary font-medium">Details</button></td>
+          </tr>
+          <tr>
+            <td class="px-4 py-3 font-medium text-slate-800">HR Business Partner</td>
+            <td class="px-4 py-3 text-slate-600">Lufthansa AG</td>
+            <td class="px-4 py-3"><span class="badge bg-amber-50 text-amber-700">Antwort erhalten</span></td>
+            <td class="px-4 py-3 text-slate-500">Auto</td>
+            <td class="px-4 py-3 text-slate-500">30.07.2026</td>
+            <td class="px-4 py-3"><button class="text-primary font-medium">Details</button></td>
+          </tr>
+          <tr>
+            <td class="px-4 py-3 font-medium text-slate-800">Werkstudent Data Science</td>
+            <td class="px-4 py-3 text-slate-600">Zalando SE</td>
+            <td class="px-4 py-3"><span class="badge bg-slate-50 text-slate-500">Entwurf</span></td>
+            <td class="px-4 py-3 text-slate-500">–</td>
+            <td class="px-4 py-3 text-slate-500">–</td>
+            <td class="px-4 py-3"><button class="text-primary font-medium">Details</button></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Mobile cards -->
+    <div class="md:hidden space-y-3">
+      <div class="border border-slate-200 rounded-xl p-4">
+        <div class="flex items-start justify-between gap-3 mb-1">
+          <div class="font-medium text-slate-800">Kaufmann Versicherung (m/w/d)</div>
+          <span class="badge bg-emerald-50 text-emerald-700 shrink-0">Einladung</span>
+        </div>
+        <div class="text-sm text-slate-500 mb-2">Allianz SE</div>
+        <div class="flex items-center justify-between text-xs text-slate-400">
+          <span>Auto · 12.08.2026</span>
+          <button class="text-primary font-medium">Details</button>
+        </div>
+      </div>
+      <div class="border border-slate-200 rounded-xl p-4">
+        <div class="flex items-start justify-between gap-3 mb-1">
+          <div class="font-medium text-slate-800">IT-Systemadministrator</div>
+          <span class="badge bg-primary-light text-primary-dark shrink-0">Versendet</span>
+        </div>
+        <div class="text-sm text-slate-500 mb-2">Bosch GmbH</div>
+        <div class="flex items-center justify-between text-xs text-slate-400">
+          <span>Manuell · 14.08.2026</span>
+          <button class="text-primary font-medium">Details</button>
+        </div>
+      </div>
+      <div class="border border-slate-200 rounded-xl p-4">
+        <div class="flex items-start justify-between gap-3 mb-1">
+          <div class="font-medium text-slate-800">Marketing Manager</div>
+          <span class="badge bg-rose-50 text-rose-600 shrink-0">Absage</span>
+        </div>
+        <div class="text-sm text-slate-500 mb-2">Adidas AG</div>
+        <div class="flex items-center justify-between text-xs text-slate-400">
+          <span>Auto · 10.08.2026</span>
+          <button class="text-primary font-medium">Details</button>
+        </div>
+      </div>
+      <div class="border border-slate-200 rounded-xl p-4">
+        <div class="flex items-start justify-between gap-3 mb-1">
+          <div class="font-medium text-slate-800">Controller (m/w/d)</div>
+          <span class="badge bg-slate-100 text-slate-600 shrink-0">Keine Rückmeldung</span>
+        </div>
+        <div class="text-sm text-slate-500 mb-2">BASF SE</div>
+        <div class="flex items-center justify-between text-xs text-slate-400">
+          <span>Manuell · 02.08.2026</span>
+          <button class="text-primary font-medium">Details</button>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<nav class="lg:hidden fixed bottom-0 inset-x-0 bg-white border-t border-slate-200 flex items-center justify-around h-16 z-20">
+  <a href="01-dashboard.html" class="flex flex-col items-center gap-0.5 text-slate-400">
+    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+    <span class="text-[11px]">Dashboard</span>
+  </a>
+  <a href="02-stellensuche.html" class="flex flex-col items-center gap-0.5 text-slate-400">
+    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+    <span class="text-[11px]">Suche</span>
+  </a>
+  <a href="#" class="flex flex-col items-center gap-0.5 text-primary">
+    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 7 10 6 10-6"/></svg>
+    <span class="text-[11px] font-medium">Bewerbungen</span>
+  </a>
+  <a href="05-profil.html" class="flex flex-col items-center gap-0.5 text-slate-400">
+    <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21v-1a7 7 0 0 1 14 0v1"/></svg>
+    <span class="text-[11px]">Profil</span>
+  </a>
+</nav>
+
+</body>
+</html>
