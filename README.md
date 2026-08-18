@@ -4,6 +4,10 @@ Webbasierte Neuentwicklung der Job-Assistent-Desktop-App: automatisierte Jobsuch
 Arbeit + Job-Alert-E-Mails), lokales Match-Scoring, Claude-generierte Anschreiben mit manueller
 Freigabe, SMTP-Versand und IMAP-Status-Tracking. Mehrbenutzerfähig, responsive (Mobile First).
 
+**Live:**
+- App: https://job-assistent-frontend.onrender.com
+- API: https://job-assistent-backend.onrender.com (Doku unter `/docs`)
+
 ## Architektur
 
 ```
