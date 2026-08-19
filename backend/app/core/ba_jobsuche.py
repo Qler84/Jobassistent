@@ -1,8 +1,12 @@
 """Client fuer die Jobsuche-API der Bundesagentur fuer Arbeit.
 
-Unveraendert aus der Desktop-App uebernommen (community-dokumentiert unter
-github.com/bundesAPI/jobsuche-api, oeffentlicher Key ohne Registrierung).
-"""
+Community-dokumentiert unter github.com/bundesAPI/jobsuche-api, oeffentlicher
+Key ohne Registrierung. Die Such-Endpunktversion und mehrere Feldnamen im
+JSON haben sich seit der urspruenglichen Desktop-App-Implementierung
+geaendert (Suche: pc/v4/jobs -> pc/v6/jobs mit neuem Antwortschema;
+Jobdetails: URL-Version pc/v4 unveraendert, aber "arbeitgeber"/"arbeitsorte"
+wurden serverseitig zu "firma"/"stellenlokationen" umbenannt) - siehe
+_parse_stellenlokation() fuer die gemeinsame Ortslogik beider Endpunkte."""
 from __future__ import annotations
 
 import base64
@@ -53,6 +57,22 @@ def _job_frontend_url(refnr: str) -> str:
     return f"https://www.arbeitsagentur.de/jobsuche/jobdetail/{refnr}"
 
 
+def _normalize_url(url: str | None, fallback: str) -> str:
+    if not url:
+        return fallback
+    return url if url.startswith("http") else f"https://{url}"
+
+
+def _first_ort(stellenlokationen: list[dict] | None) -> str:
+    """Extrahiert 'PLZ Ort' aus dem ersten Eintrag von stellenlokationen
+    (Liste von {"adresse": {"plz", "ort", ...}}) - Struktur ist bei
+    Suchergebnissen und Jobdetails identisch."""
+    if not stellenlokationen:
+        return ""
+    adresse = stellenlokationen[0].get("adresse") or {}
+    return ", ".join(filter(None, [adresse.get("plz"), adresse.get("ort")]))
+
+
 def search_jobs(
     was: str,
     wo: str = "",
@@ -73,7 +93,7 @@ def search_jobs(
 
     try:
         resp = httpx.get(
-            f"{settings.ba_api_base_url}pc/v4/jobs", params=params, headers=_HEADERS, timeout=_TIMEOUT
+            f"{settings.ba_api_base_url}pc/v6/jobs", params=params, headers=_HEADERS, timeout=_TIMEOUT
         )
         resp.raise_for_status()
     except httpx.HTTPError as exc:
@@ -81,18 +101,16 @@ def search_jobs(
 
     data = resp.json()
     results = []
-    for item in data.get("stellenangebote", []):
-        arbeitsort = item.get("arbeitsort") or {}
-        ort = ", ".join(filter(None, [arbeitsort.get("plz"), arbeitsort.get("ort")]))
-        refnr = item.get("refnr", "")
+    for item in data.get("ergebnisliste", []):
+        refnr = item.get("referenznummer", "")
         results.append(
             JobSearchResult(
                 refnr=refnr,
-                titel=item.get("titel") or item.get("beruf") or "",
-                arbeitgeber=item.get("arbeitgeber", ""),
-                ort=ort,
-                url=item.get("externeUrl") or _job_frontend_url(refnr),
-                veroeffentlicht_am=item.get("aktuelleVeroeffentlichungsdatum", ""),
+                titel=item.get("stellenangebotsTitel") or item.get("hauptberuf") or "",
+                arbeitgeber=item.get("firma", ""),
+                ort=_first_ort(item.get("stellenlokationen")),
+                url=_normalize_url(item.get("externeURL"), _job_frontend_url(refnr)),
+                veroeffentlicht_am=item.get("datumErsteVeroeffentlichung", ""),
             )
         )
     return results
@@ -109,13 +127,10 @@ def get_job_details(refnr: str) -> JobDetails:
         raise BAApiError(f"Jobdetails nicht abrufbar: {exc}") from exc
 
     data = resp.json()
-    arbeitsorte = data.get("arbeitsorte") or [{}]
-    erster_ort = arbeitsorte[0] if arbeitsorte else {}
-    ort = ", ".join(filter(None, [erster_ort.get("plz"), erster_ort.get("ort")]))
     return JobDetails(
         refnr=refnr,
         beschreibung=data.get("stellenangebotsBeschreibung", ""),
-        arbeitgeber=data.get("arbeitgeber", ""),
-        ort=ort,
-        url=data.get("allianzpartnerUrl") or _job_frontend_url(refnr),
+        arbeitgeber=data.get("firma", ""),
+        ort=_first_ort(data.get("stellenlokationen")),
+        url=_normalize_url(data.get("allianzpartnerUrl"), _job_frontend_url(refnr)),
     )
