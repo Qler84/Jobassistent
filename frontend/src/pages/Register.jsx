@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { errorMessage } from '../api/client'
-import { LogoFull } from '../components/Logo'
+import { LogoLockup } from '../components/Logo'
 import { useAuth } from '../context/AuthContext'
 
 export default function Register() {
@@ -31,7 +31,7 @@ export default function Register() {
     <div className="min-h-screen bg-white flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <div className="flex justify-center mb-7">
-          <LogoFull className="w-56 h-auto" />
+          <LogoLockup markClassName="h-20 w-auto" wordmarkClassName="text-2xl" />
         </div>
         <h1 className="text-xl font-semibold text-slate-800 mb-1 text-center">Konto erstellen</h1>
         <p className="text-slate-500 text-sm text-center mb-6">Jeder Nutzer hat sein eigenes, getrenntes Profil.</p>

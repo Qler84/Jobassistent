@@ -1,7 +1,7 @@
 import { NavLink, Outlet } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { DashboardIcon, MailIcon, SearchIcon, SettingsIcon, UserIcon } from './Icons'
-import { LogoFull, LogoMark } from './Logo'
+import { LogoLockup, LogoMark } from './Logo'
 
 const NAV_ITEMS = [
   { to: '/', label: 'Dashboard', icon: DashboardIcon, end: true },
@@ -42,7 +42,7 @@ export default function Layout() {
       <div className="flex">
         <aside className="hidden lg:flex flex-col w-64 h-screen sticky top-0 border-r border-slate-200 px-4 py-6">
           <div className="px-2 mb-7">
-            <LogoFull className="w-full h-auto" />
+            <LogoLockup markClassName="h-14 w-auto" wordmarkClassName="text-xl" />
           </div>
           <nav className="flex flex-col gap-1">
             {NAV_ITEMS.map(({ to, label, icon: Icon, end }) => (
