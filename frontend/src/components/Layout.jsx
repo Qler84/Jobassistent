@@ -1,7 +1,7 @@
 import { NavLink, Outlet } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { DashboardIcon, MailIcon, SearchIcon, SettingsIcon, UserIcon } from './Icons'
-import { LogoMark } from './Logo'
+import { LogoLockup, LogoMark } from './Logo'
 
 const NAV_ITEMS = [
   { to: '/', label: 'Dashboard', icon: DashboardIcon, end: true },
@@ -41,11 +41,9 @@ export default function Layout() {
 
       <div className="flex">
         <aside className="hidden lg:flex flex-col w-64 h-screen sticky top-0 border-r border-slate-200 px-4 py-6">
-          <div className="flex items-center gap-2 px-2 mb-1">
-            <LogoMark className="h-9 w-auto" />
-            <span className="font-semibold text-lg text-slate-800">JobAssistent</span>
+          <div className="px-2 mb-7">
+            <LogoLockup markClassName="h-9 w-auto" showTagline />
           </div>
-          <p className="text-xs text-slate-400 px-2 mb-7">Das smarte Bewerbungsmanagement.</p>
           <nav className="flex flex-col gap-1">
             {NAV_ITEMS.map(({ to, label, icon: Icon, end }) => (
               <NavLink key={to} to={to} end={end} className={({ isActive }) => navClasses(isActive, 'desktop')}>
