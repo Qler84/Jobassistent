@@ -28,6 +28,12 @@ Sebastian_Zurel_Anlagen.pdf
 # Claude Code Session-Daten
 .claude/
 
+# Logo-Rohmaterial (gross, nicht laufzeitrelevant - liegt bewusst ausserhalb
+# von frontend/public, da Vite das komplette public/-Verzeichnis 1:1 in den
+# Produktions-Build kopiert; ausgeliefert werden nur die verarbeiteten
+# Assets frontend/public/logo-mark.png + favicon-*.png)
+design-assets/
+
 # OS/editor
 .DS_Store
 Thumbs.db

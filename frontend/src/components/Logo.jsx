@@ -1,8 +1,8 @@
-export function LogoMark({ className = 'w-9 h-9' }) {
-  return <img src="/logo.svg" alt="JobAssistent" className={className} />
+export function LogoMark({ className = 'h-9 w-auto' }) {
+  return <img src="/logo-mark.png" alt="JobAssistent" className={`${className} object-contain`} />
 }
 
-export function LogoLockup({ markClassName = 'w-9 h-9', textClassName = 'text-lg', showTagline = false }) {
+export function LogoLockup({ markClassName = 'h-9 w-auto', textClassName = 'text-lg', showTagline = false }) {
   return (
     <div className="flex items-center gap-2">
       <LogoMark className={markClassName} />

@@ -31,7 +31,7 @@ export default function Register() {
     <div className="min-h-screen bg-white flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <div className="flex items-center gap-2 justify-center mb-1">
-          <LogoMark className="w-10 h-10" />
+          <LogoMark className="h-10 w-auto" />
           <span className="font-semibold text-xl text-slate-800">JobAssistent</span>
         </div>
         <p className="text-xs text-slate-400 text-center mb-7">Das smarte Bewerbungsmanagement.</p>

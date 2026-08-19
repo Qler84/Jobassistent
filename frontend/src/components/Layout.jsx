@@ -34,7 +34,7 @@ export default function Layout() {
     <div className="bg-white text-slate-800 min-h-screen">
       <header className="lg:hidden flex items-center justify-between px-4 h-14 border-b border-slate-200 sticky top-0 bg-white z-20">
         <div className="flex items-center gap-2">
-          <LogoMark className="w-8 h-8" />
+          <LogoMark className="h-8 w-auto" />
           <span className="font-semibold text-slate-800">JobAssistent</span>
         </div>
       </header>
@@ -42,7 +42,7 @@ export default function Layout() {
       <div className="flex">
         <aside className="hidden lg:flex flex-col w-64 h-screen sticky top-0 border-r border-slate-200 px-4 py-6">
           <div className="flex items-center gap-2 px-2 mb-1">
-            <LogoMark className="w-9 h-9" />
+            <LogoMark className="h-9 w-auto" />
             <span className="font-semibold text-lg text-slate-800">JobAssistent</span>
           </div>
           <p className="text-xs text-slate-400 px-2 mb-7">Das smarte Bewerbungsmanagement.</p>
