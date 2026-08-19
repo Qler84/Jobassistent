@@ -1,0 +1,18 @@
+<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="jaGrad" x1="15%" y1="0%" x2="85%" y2="100%">
+      <stop offset="0%" stop-color="#9AD9F7"/>
+      <stop offset="50%" stop-color="#4B9FE1"/>
+      <stop offset="100%" stop-color="#144E92"/>
+    </linearGradient>
+    <linearGradient id="waveGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#3D9BE0"/>
+      <stop offset="100%" stop-color="#0C4A93"/>
+    </linearGradient>
+  </defs>
+  <g fill="none" stroke="url(#jaGrad)" stroke-width="22" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M78,34 V124 Q78,152 54,152 Q30,152 24,128"/>
+    <path d="M116,152 L150,34 L184,152"/>
+  </g>
+  <path d="M16,110 Q55,86 97,106 T184,102" fill="none" stroke="url(#waveGrad)" stroke-width="17" stroke-linecap="round"/>
+</svg>

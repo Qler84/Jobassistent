@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { errorMessage } from '../api/client'
+import { LogoMark } from '../components/Logo'
 import { useAuth } from '../context/AuthContext'
 
 export default function Login() {
@@ -28,12 +29,11 @@ export default function Login() {
   return (
     <div className="min-h-screen bg-white flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
-        <div className="flex items-center gap-2 justify-center mb-8">
-          <div className="w-10 h-10 rounded-lg bg-primary flex items-center justify-center text-white font-bold">
-            JA
-          </div>
-          <span className="font-semibold text-xl text-slate-800">Job-Assistent</span>
+        <div className="flex items-center gap-2 justify-center mb-1">
+          <LogoMark className="w-10 h-10" />
+          <span className="font-semibold text-xl text-slate-800">JobAssistent</span>
         </div>
+        <p className="text-xs text-slate-400 text-center mb-7">Das smarte Bewerbungsmanagement.</p>
         <h1 className="text-xl font-semibold text-slate-800 mb-1 text-center">Anmelden</h1>
         <p className="text-slate-500 text-sm text-center mb-6">Melde dich mit deinem Konto an.</p>
 

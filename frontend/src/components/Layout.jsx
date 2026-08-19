@@ -1,6 +1,7 @@
 import { NavLink, Outlet } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { DashboardIcon, MailIcon, SearchIcon, SettingsIcon, UserIcon } from './Icons'
+import { LogoMark } from './Logo'
 
 const NAV_ITEMS = [
   { to: '/', label: 'Dashboard', icon: DashboardIcon, end: true },
@@ -33,21 +34,18 @@ export default function Layout() {
     <div className="bg-white text-slate-800 min-h-screen">
       <header className="lg:hidden flex items-center justify-between px-4 h-14 border-b border-slate-200 sticky top-0 bg-white z-20">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-white font-bold text-sm">
-            JA
-          </div>
-          <span className="font-semibold text-slate-800">Job-Assistent</span>
+          <LogoMark className="w-8 h-8" />
+          <span className="font-semibold text-slate-800">JobAssistent</span>
         </div>
       </header>
 
       <div className="flex">
         <aside className="hidden lg:flex flex-col w-64 h-screen sticky top-0 border-r border-slate-200 px-4 py-6">
-          <div className="flex items-center gap-2 px-2 mb-8">
-            <div className="w-9 h-9 rounded-lg bg-primary flex items-center justify-center text-white font-bold">
-              JA
-            </div>
-            <span className="font-semibold text-lg text-slate-800">Job-Assistent</span>
+          <div className="flex items-center gap-2 px-2 mb-1">
+            <LogoMark className="w-9 h-9" />
+            <span className="font-semibold text-lg text-slate-800">JobAssistent</span>
           </div>
+          <p className="text-xs text-slate-400 px-2 mb-7">Das smarte Bewerbungsmanagement.</p>
           <nav className="flex flex-col gap-1">
             {NAV_ITEMS.map(({ to, label, icon: Icon, end }) => (
               <NavLink key={to} to={to} end={end} className={({ isActive }) => navClasses(isActive, 'desktop')}>
