@@ -32,6 +32,16 @@ class SettingsUpdate(BaseModel):
     auto_send_enabled: bool = False
 
 
+class SmtpTestRequest(BaseModel):
+    """Testet die aktuell im Formular stehenden Werte, nicht zwingend die
+    bereits gespeicherten - erlaubt 'Testen' vor dem 'Speichern'. Leere
+    Felder fallen auf die gespeicherten Zugangsdaten zurueck."""
+    smtp_host: str | None = None
+    smtp_port: int | None = None
+    email_user: str | None = None
+    email_password: str | None = None
+
+
 class SmtpTestResult(BaseModel):
     erfolgreich: bool
     hinweis: str

@@ -14,7 +14,7 @@ from app.deps import get_current_user
 from app.models.credentials import UserCredentials
 from app.models.profile import ProfileData
 from app.models.user import User
-from app.schemas.settings import SettingsOut, SettingsUpdate, SmtpTestResult
+from app.schemas.settings import SettingsOut, SettingsUpdate, SmtpTestRequest, SmtpTestResult
 from app.security import decrypt_secret, encrypt_secret
 
 router = APIRouter(prefix="/settings", tags=["settings"])
@@ -77,19 +77,25 @@ def update_settings(
 
 
 @router.post("/test-smtp", response_model=SmtpTestResult)
-def test_smtp(db: Session = Depends(get_db), user: User = Depends(get_current_user)) -> SmtpTestResult:
+def test_smtp(
+    payload: SmtpTestRequest,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+) -> SmtpTestResult:
+    """Testet die im Formular eingegebenen Werte (auch wenn noch nicht
+    gespeichert) - leere Felder fallen auf die gespeicherten Zugangsdaten
+    zurueck, damit ein Test auch ohne erneute Passworteingabe funktioniert."""
     _, creds = _load(db, user.id)
-    password = decrypt_secret(creds.email_password_enc)
-    if not (creds.smtp_host and creds.smtp_port and creds.email_user and password):
+
+    host = payload.smtp_host or creds.smtp_host
+    port = payload.smtp_port or creds.smtp_port
+    email_user = payload.email_user or creds.email_user
+    password = payload.email_password or decrypt_secret(creds.email_password_enc)
+
+    if not (host and port and email_user and password):
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "SMTP-Zugangsdaten sind unvollstaendig.")
 
-    config = SmtpConfig(
-        host=creds.smtp_host,
-        port=creds.smtp_port,
-        user=creds.email_user,
-        password=password,
-        use_ssl=creds.smtp_port == 465,
-    )
+    config = SmtpConfig(host=host, port=port, user=email_user, password=password, use_ssl=port == 465)
     try:
         test_connection(config)
     except SmtpError as exc:

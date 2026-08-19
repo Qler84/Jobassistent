@@ -84,7 +84,12 @@ export default function Einstellungen() {
     setTesting(true)
     setTestResult(null)
     try {
-      const { data } = await client.post('/settings/test-smtp')
+      const { data } = await client.post('/settings/test-smtp', {
+        smtp_host: form.smtp_host || null,
+        smtp_port: form.smtp_port ? Number(form.smtp_port) : null,
+        email_user: form.email_user || null,
+        email_password: form.email_password || null,
+      })
       setTestResult({ ok: data.erfolgreich, text: data.hinweis })
     } catch (err) {
       setTestResult({ ok: false, text: errorMessage(err) })
