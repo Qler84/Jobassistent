@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { errorMessage } from '../api/client'
-import { LogoMark } from '../components/Logo'
+import { LogoFull } from '../components/Logo'
 import { useAuth } from '../context/AuthContext'
 
 export default function Register() {
@@ -30,11 +30,9 @@ export default function Register() {
   return (
     <div className="min-h-screen bg-white flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
-        <div className="flex items-center gap-2 justify-center mb-1">
-          <LogoMark className="h-10 w-auto" />
-          <span className="font-semibold text-xl text-slate-800">JobAssistent</span>
+        <div className="flex justify-center mb-7">
+          <LogoFull className="w-56 h-auto" />
         </div>
-        <p className="text-xs text-slate-400 text-center mb-7">Das smarte Bewerbungsmanagement.</p>
         <h1 className="text-xl font-semibold text-slate-800 mb-1 text-center">Konto erstellen</h1>
         <p className="text-slate-500 text-sm text-center mb-6">Jeder Nutzer hat sein eigenes, getrenntes Profil.</p>
 
