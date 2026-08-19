@@ -19,10 +19,11 @@ export default function Einstellungen() {
   const [form, setForm] = useState(EMPTY)
   const [hasPassword, setHasPassword] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [loadError, setLoadError] = useState('')
   const [saving, setSaving] = useState(false)
+  const [saveResult, setSaveResult] = useState(null)
   const [testing, setTesting] = useState(false)
-  const [message, setMessage] = useState('')
-  const [error, setError] = useState('')
+  const [testResult, setTestResult] = useState(null)
 
   async function load() {
     try {
@@ -42,7 +43,7 @@ export default function Einstellungen() {
       })
       setHasPassword(data.has_email_password)
     } catch (err) {
-      setError(errorMessage(err))
+      setLoadError(errorMessage(err))
     } finally {
       setLoading(false)
     }
@@ -59,8 +60,7 @@ export default function Einstellungen() {
   async function handleSave(e) {
     e.preventDefault()
     setSaving(true)
-    setError('')
-    setMessage('')
+    setSaveResult(null)
     try {
       const payload = {
         ...form,
@@ -71,10 +71,10 @@ export default function Einstellungen() {
         email_password: form.email_password || null,
       }
       await client.put('/settings', payload)
-      setMessage('Einstellungen gespeichert.')
+      setSaveResult({ ok: true, text: 'Einstellungen gespeichert.' })
       await load()
     } catch (err) {
-      setError(errorMessage(err))
+      setSaveResult({ ok: false, text: errorMessage(err) })
     } finally {
       setSaving(false)
     }
@@ -82,17 +82,12 @@ export default function Einstellungen() {
 
   async function handleTestSmtp() {
     setTesting(true)
-    setError('')
-    setMessage('')
+    setTestResult(null)
     try {
       const { data } = await client.post('/settings/test-smtp')
-      if (data.erfolgreich) {
-        setMessage(data.hinweis)
-      } else {
-        setError(data.hinweis)
-      }
+      setTestResult({ ok: data.erfolgreich, text: data.hinweis })
     } catch (err) {
-      setError(errorMessage(err))
+      setTestResult({ ok: false, text: errorMessage(err) })
     } finally {
       setTesting(false)
     }
@@ -104,8 +99,7 @@ export default function Einstellungen() {
     <div className="max-w-2xl">
       <h1 className="text-2xl font-semibold text-slate-800 mb-6">Einstellungen</h1>
 
-      {message && <p className="text-sm text-primary mb-4">{message}</p>}
-      {error && <p className="text-sm text-rose-600 mb-4">{error}</p>}
+      {loadError && <p className="text-sm text-rose-600 mb-4">{loadError}</p>}
 
       <form onSubmit={handleSave} className="space-y-6">
         <section className="border border-slate-200 rounded-xl p-5">
@@ -260,23 +254,37 @@ export default function Einstellungen() {
             Die Claude-Anschreiben-Generierung wird zentral bereitgestellt – dafür ist kein eigener
             Anthropic-API-Key nötig.
           </p>
-          <button
-            type="button"
-            onClick={handleTestSmtp}
-            disabled={testing}
-            className="text-xs text-slate-500 border border-slate-200 rounded-lg px-3 py-2 hover:bg-slate-50 disabled:opacity-60"
-          >
-            {testing ? 'Teste…' : 'SMTP-Verbindung testen'}
-          </button>
+          <div className="flex items-center gap-3 flex-wrap">
+            <button
+              type="button"
+              onClick={handleTestSmtp}
+              disabled={testing}
+              className="text-xs text-slate-500 border border-slate-200 rounded-lg px-3 py-2 hover:bg-slate-50 disabled:opacity-60"
+            >
+              {testing ? 'Teste…' : 'SMTP-Verbindung testen'}
+            </button>
+            {testResult && (
+              <span className={`text-xs ${testResult.ok ? 'text-primary' : 'text-rose-600'}`}>
+                {testResult.text}
+              </span>
+            )}
+          </div>
         </section>
 
-        <button
-          type="submit"
-          disabled={saving}
-          className="w-full bg-primary text-white text-sm font-medium rounded-lg px-4 py-3 hover:bg-primary-dark transition disabled:opacity-60"
-        >
-          {saving ? 'Speichert…' : 'Einstellungen speichern'}
-        </button>
+        <div>
+          <button
+            type="submit"
+            disabled={saving}
+            className="w-full bg-primary text-white text-sm font-medium rounded-lg px-4 py-3 hover:bg-primary-dark transition disabled:opacity-60"
+          >
+            {saving ? 'Speichert…' : 'Einstellungen speichern'}
+          </button>
+          {saveResult && (
+            <p className={`text-sm mt-2 text-center ${saveResult.ok ? 'text-primary' : 'text-rose-600'}`}>
+              {saveResult.text}
+            </p>
+          )}
+        </div>
       </form>
     </div>
   )
