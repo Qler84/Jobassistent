@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
+from app.config import get_settings
 from app.core import ba_jobsuche, matching
 from app.core.ba_jobsuche import BAApiError
 from app.core.email_imap import ImapConfig
@@ -20,6 +21,7 @@ from app.schemas.job import JobAlertImportResponse, JobOut, SearchRequest, Searc
 from app.security import decrypt_secret
 
 router = APIRouter(prefix="/jobs", tags=["jobs"])
+settings = get_settings()
 
 
 def _get_profile(db: Session, user_id: int) -> ProfileData:
@@ -130,11 +132,8 @@ def import_alerts(db: Session = Depends(get_db), user: User = Depends(get_curren
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Zugangsdaten nicht gefunden.")
 
     password = decrypt_secret(creds.email_password_enc)
-    api_key = decrypt_secret(creds.anthropic_api_key_enc)
     if not (creds.imap_host and creds.imap_port and creds.email_user and password):
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "IMAP-Zugangsdaten sind unvollstaendig.")
-    if not api_key:
-        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Kein Anthropic-API-Key hinterlegt.")
 
     imap_config = ImapConfig(
         host=creds.imap_host,
@@ -145,7 +144,7 @@ def import_alerts(db: Session = Depends(get_db), user: User = Depends(get_curren
     )
     try:
         result = run_job_alert_import(
-            imap_config, profile, db, user.id, api_key, model=creds.claude_model
+            imap_config, profile, db, user.id, settings.anthropic_api_key, model=creds.claude_model
         )
     except JobAlertImportError as exc:
         raise HTTPException(status.HTTP_502_BAD_GATEWAY, str(exc)) from exc

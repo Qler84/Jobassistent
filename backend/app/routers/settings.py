@@ -36,7 +36,6 @@ def _to_out(profile: ProfileData, creds: UserCredentials) -> SettingsOut:
         imap_port=creds.imap_port,
         email_user=creds.email_user,
         has_email_password=bool(creds.email_password_enc),
-        has_anthropic_api_key=bool(creds.anthropic_api_key_enc),
         claude_model=creds.claude_model,
         imap_auto_check_enabled=creds.imap_auto_check_enabled,
         imap_auto_check_minutes=creds.imap_auto_check_minutes,
@@ -64,10 +63,6 @@ def update_settings(
     creds.email_user = payload.email_user
     if payload.email_password is not None:
         creds.email_password_enc = encrypt_secret(payload.email_password) if payload.email_password else None
-    if payload.anthropic_api_key is not None:
-        creds.anthropic_api_key_enc = (
-            encrypt_secret(payload.anthropic_api_key) if payload.anthropic_api_key else None
-        )
     creds.claude_model = payload.claude_model
     creds.imap_auto_check_enabled = payload.imap_auto_check_enabled
     creds.imap_auto_check_minutes = payload.imap_auto_check_minutes

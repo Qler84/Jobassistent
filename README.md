@@ -24,8 +24,9 @@ render.yaml  Render.com Blueprint fuer beide Services
   nur, wenn der automatische Versand in den Einstellungen aktiv aktiviert wurde (Vorschau-Modus ist
   Standard nach Registrierung).
 - **Mehrbenutzerfähig**: jeder Nutzer hat ein eigenes Konto (E-Mail + Passwort), eigenes Profil,
-  eigene Jobs/Bewerbungen und eigene, verschlüsselt gespeicherte Zugangsdaten (SMTP/IMAP/Claude
-  API-Key).
+  eigene Jobs/Bewerbungen und eigene, verschlüsselt gespeicherte SMTP/IMAP-Zugangsdaten (das eigene
+  Postfach). Der Anthropic-API-Key ist dagegen global vom Betreiber hinterlegt (`ANTHROPIC_API_KEY`)
+  und gilt für alle Nutzer gemeinsam - niemand braucht einen eigenen Claude-Key, um die App zu nutzen.
 
 ## Sicherheitsmodell: Unterschied zur Desktop-App
 
@@ -35,11 +36,14 @@ die Daten nicht entschlüsseln können). Ein zustandsloser Web-Server kann diese
 sinnvoll abbilden: jeder Request (z.B. „E-Mail jetzt prüfen“) braucht Zugriff auf die Zugangsdaten,
 ohne dass der Nutzer sein Passwort bei jeder Aktion erneut eingibt.
 
-Stattdessen: normales Login per Passwort-Hash (bcrypt), und die Zugangsdaten (SMTP/IMAP-Passwort,
-Anthropic API-Key) werden serverseitig mit einem aus `APP_SECRET_KEY` abgeleiteten Schlüssel
-verschlüsselt in der Datenbank abgelegt („at rest“). Das schützt bei einem reinen Datenbank-Diebstahl,
-nicht aber vor dem Betreiber des Servers selbst. Für eine rein persönliche Nutzung (ein Nutzer
-betreibt seine eigene Instanz) ist das ein sinnvoller, praxistauglicher Kompromiss.
+Stattdessen: normales Login per Passwort-Hash (bcrypt), und das SMTP/IMAP-Passwort jedes Nutzers wird
+serverseitig mit einem aus `APP_SECRET_KEY` abgeleiteten Schlüssel verschlüsselt in der Datenbank
+abgelegt („at rest“). Das schützt bei einem reinen Datenbank-Diebstahl, nicht aber vor dem Betreiber
+des Servers selbst. Für eine rein persönliche Nutzung (ein Nutzer betreibt seine eigene Instanz) ist
+das ein sinnvoller, praxistauglicher Kompromiss.
+
+Der Anthropic-API-Key ist kein Nutzer-Secret mehr, sondern eine reine Server-Konfiguration
+(`ANTHROPIC_API_KEY`) - der Betreiber trägt die Claude-API-Kosten für alle Nutzer gemeinsam.
 
 ## Lokale Entwicklung
 
@@ -55,7 +59,7 @@ cd backend
 python -m venv .venv
 .venv/Scripts/activate   # Windows; unter Linux/Mac: source .venv/bin/activate
 pip install -r requirements.txt
-cp .env.example .env     # DATABASE_URL und APP_SECRET_KEY eintragen
+cp .env.example .env     # DATABASE_URL, APP_SECRET_KEY und ANTHROPIC_API_KEY eintragen
 uvicorn app.main:app --reload
 ```
 
@@ -101,15 +105,20 @@ Environment) eingetragen.
    den erzeugten Service-URLs abhängen bzw. Secrets sind):
    - **Backend** (`job-assistent-backend` → Environment):
      - `DATABASE_URL` = Connection-String von Neon/Supabase (siehe oben)
+     - `ANTHROPIC_API_KEY` = ein einziger Key des Betreibers (console.anthropic.com), gilt für alle
+       Nutzer gemeinsam
      - `CORS_ORIGINS` = die URL des Frontend-Services, z.B. `https://job-assistent-frontend.onrender.com`
    - **Frontend** (`job-assistent-frontend` → Environment):
      - `VITE_API_URL` = die URL des Backend-Services, z.B. `https://job-assistent-backend.onrender.com`
      - Wichtig: Vite bündelt Umgebungsvariablen beim Build – nach dem Setzen von `VITE_API_URL` muss
        das Frontend einmal manuell neu deployt werden („Manual Deploy“ im Dashboard).
-4. Beide Services prüfen (Backend: `<backend-url>/health` sollte `{"status":"ok"}` liefern; Frontend:
-   Login-Seite sollte laden).
-5. Ein Konto über „Registrieren“ anlegen und in den Einstellungen die eigenen Zugangsdaten
-   (SMTP/IMAP/Claude API-Key) hinterlegen.
+4. Im Dashboard des Frontend-Services unter Settings → Redirects/Rewrites eine Regel hinzufügen:
+   Source `/*`, Destination `/index.html`, Action `Rewrite` (React-Router-SPA-Fallback, wird vom
+   `create_static_site`-API-Weg nicht automatisch gesetzt).
+5. Beide Services prüfen (Backend: `<backend-url>/health` sollte `{"status":"ok"}` liefern; Frontend:
+   Login-Seite sollte laden, auch bei direktem Aufruf von Unterseiten wie `/profil`).
+6. Jeder Nutzer legt sich über „Registrieren“ ein eigenes Konto an und hinterlegt in den
+   Einstellungen nur die eigenen SMTP/IMAP-Zugangsdaten - keinen eigenen Claude-Key.
 
 ### Bekannte Einschränkungen des kostenlosen Tiers
 
@@ -130,6 +139,7 @@ Environment) eingetragen.
 |---|---|---|
 | `DATABASE_URL` | ja | Postgres-Connection-String (Neon/Supabase/eigene Instanz) |
 | `APP_SECRET_KEY` | ja | Langer Zufallsstring; Basis für JWT-Signierung und Verschlüsselung der Zugangsdaten |
+| `ANTHROPIC_API_KEY` | ja | Ein globaler Claude-Key des Betreibers, gilt für alle Nutzer |
 | `CORS_ORIGINS` | ja | Kommagetrennte Liste erlaubter Frontend-Origins |
 
 ### Frontend (`frontend/.env`)

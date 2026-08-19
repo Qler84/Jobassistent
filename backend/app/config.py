@@ -24,6 +24,12 @@ class Settings(BaseSettings):
     # den anderen kompromittiert.
     app_secret_key: str
 
+    # Ein einziger, vom Betreiber bereitgestellter Anthropic-API-Key fuer alle
+    # Nutzer (Cover-Letter-Generierung, PDF-Profil-Import, Job-Alert-Import).
+    # Anders als SMTP/IMAP (das eigene Postfach jedes Nutzers) ist hierfuer
+    # kein Nutzer-Login noetig - der Betreiber traegt die Claude-API-Kosten.
+    anthropic_api_key: str
+
     jwt_algorithm: str = "HS256"
     access_token_expire_minutes: int = 60 * 24 * 7  # 7 Tage
 

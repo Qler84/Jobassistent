@@ -24,7 +24,7 @@ class UserCredentials(Base):
     email_user: Mapped[str | None] = mapped_column(String(255), nullable=True)
     email_password_enc: Mapped[str | None] = mapped_column(String(1000), nullable=True)
 
-    anthropic_api_key_enc: Mapped[str | None] = mapped_column(String(1000), nullable=True)
+    # Der Anthropic-API-Key ist global (siehe config.py) - kein Pro-Nutzer-Feld.
     claude_model: Mapped[str] = mapped_column(String(100), default="claude-sonnet-5")
 
     imap_auto_check_enabled: Mapped[bool] = mapped_column(Boolean, default=False)

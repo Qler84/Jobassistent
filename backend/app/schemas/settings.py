@@ -10,7 +10,6 @@ class SettingsOut(BaseModel):
     imap_port: int | None
     email_user: str | None
     has_email_password: bool
-    has_anthropic_api_key: bool
     claude_model: str
     imap_auto_check_enabled: bool
     imap_auto_check_minutes: int
@@ -26,7 +25,6 @@ class SettingsUpdate(BaseModel):
     email_user: str | None = None
     # None = unveraendert lassen, "" = explizit loeschen
     email_password: str | None = None
-    anthropic_api_key: str | None = None
     claude_model: str = "claude-sonnet-5"
     imap_auto_check_enabled: bool = False
     imap_auto_check_minutes: int = 30

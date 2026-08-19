@@ -13,6 +13,7 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session, joinedload
 
+from app.config import get_settings
 from app.core.cover_letter import CoverLetterError, extract_contact_email, generate_cover_letter
 from app.core.email_imap import ImapConfig
 from app.core.email_smtp import SmtpConfig, SmtpError, send_application_email
@@ -35,6 +36,7 @@ from app.schemas.application import (
 from app.security import decrypt_secret
 
 router = APIRouter(tags=["applications"])
+settings = get_settings()
 
 
 def _get_job(db: Session, user_id: int, job_id: int) -> Job:
@@ -91,17 +93,11 @@ def generate_letter(
     job = application.job
     profile = db.query(ProfileData).filter(ProfileData.user_id == user.id).first()
     creds = db.query(UserCredentials).filter(UserCredentials.user_id == user.id).first()
-    api_key = decrypt_secret(creds.anthropic_api_key_enc) if creds else None
-    if not api_key:
-        raise HTTPException(
-            status.HTTP_400_BAD_REQUEST,
-            "Kein Anthropic-API-Key hinterlegt. Bitte zuerst in den Einstellungen speichern.",
-        )
 
     try:
         result = generate_cover_letter(
             profile,
-            api_key,
+            settings.anthropic_api_key,
             job_titel=job.titel,
             arbeitgeber=job.firma,
             ort=job.ort,

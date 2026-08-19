@@ -8,7 +8,6 @@ const EMPTY = {
   imap_port: '',
   email_user: '',
   email_password: '',
-  anthropic_api_key: '',
   claude_model: 'claude-sonnet-5',
   imap_auto_check_enabled: false,
   imap_auto_check_minutes: 30,
@@ -19,7 +18,6 @@ const EMPTY = {
 export default function Einstellungen() {
   const [form, setForm] = useState(EMPTY)
   const [hasPassword, setHasPassword] = useState(false)
-  const [hasApiKey, setHasApiKey] = useState(false)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [testing, setTesting] = useState(false)
@@ -36,7 +34,6 @@ export default function Einstellungen() {
         imap_port: data.imap_port || '',
         email_user: data.email_user || '',
         email_password: '',
-        anthropic_api_key: '',
         claude_model: data.claude_model,
         imap_auto_check_enabled: data.imap_auto_check_enabled,
         imap_auto_check_minutes: data.imap_auto_check_minutes,
@@ -44,7 +41,6 @@ export default function Einstellungen() {
         auto_send_enabled: data.auto_send_enabled,
       })
       setHasPassword(data.has_email_password)
-      setHasApiKey(data.has_anthropic_api_key)
     } catch (err) {
       setError(errorMessage(err))
     } finally {
@@ -73,7 +69,6 @@ export default function Einstellungen() {
         // leeres Feld = unveraendert lassen (nicht ueberschreiben), nur bei
         // tatsaechlicher Eingabe wird das gespeicherte Secret ersetzt
         email_password: form.email_password || null,
-        anthropic_api_key: form.anthropic_api_key || null,
       }
       await client.put('/settings', payload)
       setMessage('Einstellungen gespeichert.')
@@ -260,19 +255,11 @@ export default function Einstellungen() {
                 className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
               />
             </div>
-            <div className="sm:col-span-2">
-              <label className="block text-sm font-medium text-slate-600 mb-1.5">
-                Anthropic API-Key (Claude) {hasApiKey && <span className="text-slate-400">(hinterlegt)</span>}
-              </label>
-              <input
-                type="password"
-                placeholder={hasApiKey ? 'sk-ant-•••••••••••••••••• (unverändert lassen)' : 'sk-ant-...'}
-                value={form.anthropic_api_key}
-                onChange={(e) => update('anthropic_api_key', e.target.value)}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
-              />
-            </div>
           </div>
+          <p className="text-xs text-slate-500 mb-4">
+            Die Claude-Anschreiben-Generierung wird zentral bereitgestellt – dafür ist kein eigener
+            Anthropic-API-Key nötig.
+          </p>
           <button
             type="button"
             onClick={handleTestSmtp}

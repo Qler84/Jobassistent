@@ -18,7 +18,6 @@ from app.schemas.profile import (
     ProfileOut,
     ProfileUpdate,
 )
-from app.security import decrypt_secret
 
 router = APIRouter(prefix="/profile", tags=["profile"])
 settings = get_settings()
@@ -89,16 +88,12 @@ async def import_pdf(
     user: User = Depends(get_current_user),
 ) -> dict:
     creds = db.query(UserCredentials).filter(UserCredentials.user_id == user.id).first()
-    api_key = decrypt_secret(creds.anthropic_api_key_enc) if creds else None
-    if not api_key:
-        raise HTTPException(
-            status.HTTP_400_BAD_REQUEST,
-            "Kein Anthropic-API-Key hinterlegt. Bitte zuerst in den Einstellungen speichern.",
-        )
 
     payload = [(f.filename or "dokument.pdf", await f.read()) for f in files]
     try:
-        data = extract_profile_from_documents(api_key, payload, model=creds.claude_model if creds else None)
+        data = extract_profile_from_documents(
+            settings.anthropic_api_key, payload, model=creds.claude_model if creds else None
+        )
     except ProfileImportError as exc:
         raise HTTPException(status.HTTP_422_UNPROCESSABLE_ENTITY, str(exc)) from exc
     return data
