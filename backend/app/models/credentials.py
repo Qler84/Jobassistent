@@ -15,8 +15,6 @@ class UserCredentials(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), unique=True)
 
-    smtp_host: Mapped[str | None] = mapped_column(String(255), nullable=True)
-    smtp_port: Mapped[int | None] = mapped_column(Integer, nullable=True)
     imap_host: Mapped[str | None] = mapped_column(String(255), nullable=True)
     imap_port: Mapped[int | None] = mapped_column(Integer, nullable=True)
     # E-Mail-Adresse + Passwort gelten fuer SMTP und IMAP gleichermassen

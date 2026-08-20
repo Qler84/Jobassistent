@@ -1,23 +1,28 @@
 """Einstellungen: Match-Schwelle, Claude-Modell, Auto-Versand, Zugangsdaten.
 
 Buendelt Felder aus ProfileData (match_threshold, auto_send_enabled) und
-UserCredentials (SMTP/IMAP/Claude) zu einer einzigen Ansicht, analog zum
-Einstellungen-Tab der Desktop-App."""
+UserCredentials (IMAP/Claude) zu einer einzigen Ansicht, analog zum
+Einstellungen-Tab der Desktop-App. Der E-Mail-Versand selbst laeuft ueber
+die globale Brevo-API (core/email_send.py), nicht mehr ueber vom Nutzer
+hinterlegte SMTP-Zugangsdaten - dafuer muss dessen Absenderadresse einmalig
+bei Brevo verifiziert werden."""
 from __future__ import annotations
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
-from app.core.email_smtp import SmtpConfig, SmtpError, test_connection
+from app.config import get_settings
+from app.core.email_send import EmailApiError, ensure_sender, sender_verified
 from app.database import get_db
 from app.deps import get_current_user
 from app.models.credentials import UserCredentials
 from app.models.profile import ProfileData
 from app.models.user import User
-from app.schemas.settings import SettingsOut, SettingsUpdate, SmtpTestRequest, SmtpTestResult
-from app.security import decrypt_secret, encrypt_secret
+from app.schemas.settings import SenderVerifyRequest, SenderVerifyResult, SettingsOut, SettingsUpdate
+from app.security import encrypt_secret
 
 router = APIRouter(prefix="/settings", tags=["settings"])
+settings = get_settings()
 
 
 def _load(db: Session, user_id: int) -> tuple[ProfileData, UserCredentials]:
@@ -29,13 +34,13 @@ def _load(db: Session, user_id: int) -> tuple[ProfileData, UserCredentials]:
 
 
 def _to_out(profile: ProfileData, creds: UserCredentials) -> SettingsOut:
+    verified = bool(creds.email_user) and sender_verified(settings.brevo_api_key, creds.email_user)
     return SettingsOut(
-        smtp_host=creds.smtp_host,
-        smtp_port=creds.smtp_port,
         imap_host=creds.imap_host,
         imap_port=creds.imap_port,
         email_user=creds.email_user,
         has_email_password=bool(creds.email_password_enc),
+        sender_verified=verified,
         claude_model=creds.claude_model,
         imap_auto_check_enabled=creds.imap_auto_check_enabled,
         imap_auto_check_minutes=creds.imap_auto_check_minutes,
@@ -56,8 +61,6 @@ def update_settings(
 ) -> SettingsOut:
     profile, creds = _load(db, user.id)
 
-    creds.smtp_host = payload.smtp_host
-    creds.smtp_port = payload.smtp_port
     creds.imap_host = payload.imap_host
     creds.imap_port = payload.imap_port
     creds.email_user = payload.email_user
@@ -76,28 +79,28 @@ def update_settings(
     return _to_out(profile, creds)
 
 
-@router.post("/test-smtp", response_model=SmtpTestResult)
-def test_smtp(
-    payload: SmtpTestRequest,
+@router.post("/verify-sender", response_model=SenderVerifyResult)
+def verify_sender(
+    payload: SenderVerifyRequest,
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
-) -> SmtpTestResult:
-    """Testet die im Formular eingegebenen Werte (auch wenn noch nicht
-    gespeichert) - leere Felder fallen auf die gespeicherten Zugangsdaten
-    zurueck, damit ein Test auch ohne erneute Passworteingabe funktioniert."""
-    _, creds = _load(db, user.id)
+) -> SenderVerifyResult:
+    """Legt die Absenderadresse bei Brevo an (idempotent) und loest damit die
+    Bestaetigungs-E-Mail aus, bzw. meldet, falls bereits verifiziert."""
+    profile, creds = _load(db, user.id)
+    email = payload.email_user or creds.email_user
+    if not email:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "E-Mail-Adresse fehlt.")
 
-    host = payload.smtp_host or creds.smtp_host
-    port = payload.smtp_port or creds.smtp_port
-    email_user = payload.email_user or creds.email_user
-    password = payload.email_password or decrypt_secret(creds.email_password_enc)
+    if sender_verified(settings.brevo_api_key, email):
+        return SenderVerifyResult(verifiziert=True, hinweis="Absenderadresse ist bereits verifiziert.")
 
-    if not (host and port and email_user and password):
-        raise HTTPException(status.HTTP_400_BAD_REQUEST, "SMTP-Zugangsdaten sind unvollstaendig.")
-
-    config = SmtpConfig(host=host, port=port, user=email_user, password=password, use_ssl=port == 465)
     try:
-        test_connection(config)
-    except SmtpError as exc:
-        return SmtpTestResult(erfolgreich=False, hinweis=str(exc))
-    return SmtpTestResult(erfolgreich=True, hinweis="Verbindung erfolgreich hergestellt.")
+        ensure_sender(settings.brevo_api_key, email, payload.sender_name or profile.name)
+    except EmailApiError as exc:
+        return SenderVerifyResult(verifiziert=False, hinweis=str(exc))
+
+    return SenderVerifyResult(
+        verifiziert=False,
+        hinweis=f"Bestaetigungs-E-Mail wurde an {email} gesendet. Bitte Posteingang pruefen und Link anklicken.",
+    )

@@ -16,7 +16,7 @@ from sqlalchemy.orm import Session, joinedload
 from app.config import get_settings
 from app.core.cover_letter import CoverLetterError, extract_contact_email, generate_cover_letter
 from app.core.email_imap import ImapConfig
-from app.core.email_smtp import SmtpConfig, SmtpError, send_application_email
+from app.core.email_send import EmailApiError, send_application_email
 from app.core.status_tracking import run_imap_check
 from app.database import get_db
 from app.deps import get_current_user
@@ -156,31 +156,23 @@ def send_application(
         )
     if not application.anschreiben_text or not application.kontakt_email:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Anschreiben-Text oder Empfaenger-E-Mail fehlt.")
-
-    password = decrypt_secret(creds.email_password_enc) if creds else None
-    if not (creds and creds.smtp_host and creds.smtp_port and creds.email_user and password):
-        raise HTTPException(status.HTTP_400_BAD_REQUEST, "SMTP-Zugangsdaten sind unvollstaendig.")
+    if not (creds and creds.email_user):
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Absender-E-Mail-Adresse ist nicht hinterlegt.")
 
     attachments = db.query(Attachment).filter(Attachment.user_id == user.id).all()
     anhaenge = [(a.filename, a.content_type, a.data) for a in attachments]
 
-    config = SmtpConfig(
-        host=creds.smtp_host,
-        port=creds.smtp_port,
-        user=creds.email_user,
-        password=password,
-        use_ssl=creds.smtp_port == 465,
-    )
     try:
         message_id = send_application_email(
-            config,
+            settings.brevo_api_key,
+            sender_email=creds.email_user,
+            sender_name=profile.name,
             empfaenger=application.kontakt_email,
             betreff=application.betreff or f"Bewerbung als {application.job.titel}",
             text=application.anschreiben_text,
             anhaenge=anhaenge,
-            absender_name=profile.name,
         )
-    except SmtpError as exc:
+    except EmailApiError as exc:
         raise HTTPException(status.HTTP_502_BAD_GATEWAY, str(exc)) from exc
 
     application.status = "versendet"

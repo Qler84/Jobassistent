@@ -2,8 +2,6 @@ import { useEffect, useState } from 'react'
 import client, { errorMessage } from '../api/client'
 
 const EMPTY = {
-  smtp_host: '',
-  smtp_port: '',
   imap_host: '',
   imap_port: '',
   email_user: '',
@@ -18,6 +16,7 @@ const EMPTY = {
 export default function Einstellungen() {
   const [form, setForm] = useState(EMPTY)
   const [hasPassword, setHasPassword] = useState(false)
+  const [senderVerified, setSenderVerified] = useState(false)
   const [loading, setLoading] = useState(true)
   const [loadError, setLoadError] = useState('')
   const [saving, setSaving] = useState(false)
@@ -29,8 +28,6 @@ export default function Einstellungen() {
     try {
       const { data } = await client.get('/settings')
       setForm({
-        smtp_host: data.smtp_host || '',
-        smtp_port: data.smtp_port || '',
         imap_host: data.imap_host || '',
         imap_port: data.imap_port || '',
         email_user: data.email_user || '',
@@ -42,6 +39,7 @@ export default function Einstellungen() {
         auto_send_enabled: data.auto_send_enabled,
       })
       setHasPassword(data.has_email_password)
+      setSenderVerified(data.sender_verified)
     } catch (err) {
       setLoadError(errorMessage(err))
     } finally {
@@ -64,7 +62,6 @@ export default function Einstellungen() {
     try {
       const payload = {
         ...form,
-        smtp_port: form.smtp_port ? Number(form.smtp_port) : null,
         imap_port: form.imap_port ? Number(form.imap_port) : null,
         // leeres Feld = unveraendert lassen (nicht ueberschreiben), nur bei
         // tatsaechlicher Eingabe wird das gespeicherte Secret ersetzt
@@ -80,17 +77,15 @@ export default function Einstellungen() {
     }
   }
 
-  async function handleTestSmtp() {
+  async function handleVerifySender() {
     setTesting(true)
     setTestResult(null)
     try {
-      const { data } = await client.post('/settings/test-smtp', {
-        smtp_host: form.smtp_host || null,
-        smtp_port: form.smtp_port ? Number(form.smtp_port) : null,
+      const { data } = await client.post('/settings/verify-sender', {
         email_user: form.email_user || null,
-        email_password: form.email_password || null,
       })
-      setTestResult({ ok: data.erfolgreich, text: data.hinweis })
+      setSenderVerified(data.verifiziert)
+      setTestResult({ ok: data.verifiziert, text: data.hinweis })
     } catch (err) {
       setTestResult({ ok: false, text: errorMessage(err) })
     } finally {
@@ -190,29 +185,10 @@ export default function Einstellungen() {
           <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-1">Zugangsdaten</h2>
           <p className="text-xs text-slate-400 mb-4">
             Werden verschlüsselt gespeichert. Für web.de/GMX bitte ein App-Passwort statt des Hauptpassworts
-            verwenden.
+            verwenden. IMAP wird für den Postfach-Abruf (Statusverfolgung) genutzt; der Versand selbst läuft
+            über einen zentral bereitgestellten E-Mail-Dienst, siehe „Absender-Verifizierung“ unten.
           </p>
           <div className="grid sm:grid-cols-2 gap-4 mb-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-600 mb-1.5">SMTP-Host</label>
-              <input
-                type="text"
-                placeholder="smtp.web.de"
-                value={form.smtp_host}
-                onChange={(e) => update('smtp_host', e.target.value)}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-600 mb-1.5">SMTP-Port</label>
-              <input
-                type="number"
-                placeholder="587"
-                value={form.smtp_port}
-                onChange={(e) => update('smtp_port', e.target.value)}
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm"
-              />
-            </div>
             <div>
               <label className="block text-sm font-medium text-slate-600 mb-1.5">IMAP-Host</label>
               <input
@@ -259,20 +235,39 @@ export default function Einstellungen() {
             Die Claude-Anschreiben-Generierung wird zentral bereitgestellt – dafür ist kein eigener
             Anthropic-API-Key nötig.
           </p>
-          <div className="flex items-center gap-3 flex-wrap">
-            <button
-              type="button"
-              onClick={handleTestSmtp}
-              disabled={testing}
-              className="text-xs text-slate-500 border border-slate-200 rounded-lg px-3 py-2 hover:bg-slate-50 disabled:opacity-60"
-            >
-              {testing ? 'Teste…' : 'SMTP-Verbindung testen'}
-            </button>
-            {testResult && (
-              <span className={`text-xs ${testResult.ok ? 'text-primary' : 'text-rose-600'}`}>
-                {testResult.text}
+
+          <div className="border-t border-slate-100 pt-4">
+            <div className="flex items-center gap-2 mb-1.5">
+              <h3 className="text-sm font-medium text-slate-600">Absender-Verifizierung</h3>
+              <span
+                className={`text-xs px-2 py-0.5 rounded-full ${
+                  senderVerified ? 'bg-primary-light text-primary-dark' : 'bg-amber-50 text-amber-700'
+                }`}
+              >
+                {senderVerified ? 'verifiziert' : 'nicht verifiziert'}
               </span>
-            )}
+            </div>
+            <p className="text-xs text-slate-400 mb-3">
+              Bewerbungen werden über einen zentralen E-Mail-Dienst versendet (nicht per direktem SMTP, da
+              Hosting-Anbieter das oft blockieren). Damit E-Mails wirklich von deiner eigenen Adresse aus
+              verschickt werden dürfen, musst du sie einmalig bestätigen: Klick unten löst eine Bestätigungsmail
+              an deine E-Mail-Adresse aus, den enthaltenen Link musst du dort anklicken.
+            </p>
+            <div className="flex items-center gap-3 flex-wrap">
+              <button
+                type="button"
+                onClick={handleVerifySender}
+                disabled={testing || senderVerified}
+                className="text-xs text-slate-500 border border-slate-200 rounded-lg px-3 py-2 hover:bg-slate-50 disabled:opacity-60"
+              >
+                {testing ? 'Sende…' : senderVerified ? 'Bereits verifiziert' : 'Verifizierung anstoßen'}
+              </button>
+              {testResult && (
+                <span className={`text-xs ${testResult.ok ? 'text-primary' : 'text-rose-600'}`}>
+                  {testResult.text}
+                </span>
+              )}
+            </div>
           </div>
         </section>
 

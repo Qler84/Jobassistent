@@ -2,7 +2,8 @@
 
 Webbasierte Neuentwicklung der Job-Assistent-Desktop-App: automatisierte Jobsuche (Bundesagentur für
 Arbeit + Job-Alert-E-Mails), lokales Match-Scoring, Claude-generierte Anschreiben mit manueller
-Freigabe, SMTP-Versand und IMAP-Status-Tracking. Mehrbenutzerfähig, responsive (Mobile First).
+Freigabe, E-Mail-Versand (Brevo-API) und IMAP-Status-Tracking. Mehrbenutzerfähig, responsive (Mobile
+First).
 
 **Live:**
 - App: https://job-assistent-frontend.onrender.com
@@ -24,9 +25,12 @@ render.yaml  Render.com Blueprint fuer beide Services
   nur, wenn der automatische Versand in den Einstellungen aktiv aktiviert wurde (Vorschau-Modus ist
   Standard nach Registrierung).
 - **Mehrbenutzerfähig**: jeder Nutzer hat ein eigenes Konto (E-Mail + Passwort), eigenes Profil,
-  eigene Jobs/Bewerbungen und eigene, verschlüsselt gespeicherte SMTP/IMAP-Zugangsdaten (das eigene
-  Postfach). Der Anthropic-API-Key ist dagegen global vom Betreiber hinterlegt (`ANTHROPIC_API_KEY`)
-  und gilt für alle Nutzer gemeinsam - niemand braucht einen eigenen Claude-Key, um die App zu nutzen.
+  eigene Jobs/Bewerbungen und eigene, verschlüsselt gespeicherte IMAP-Zugangsdaten (das eigene
+  Postfach für den Statusabruf). Der Anthropic-API-Key sowie der Brevo-API-Key für den E-Mail-Versand
+  sind dagegen global vom Betreiber hinterlegt (`ANTHROPIC_API_KEY`, `BREVO_API_KEY`) und gelten für
+  alle Nutzer gemeinsam - niemand braucht einen eigenen Claude- oder E-Mail-API-Key. Versendet wird
+  aber weiterhin von der eigenen Adresse jedes Nutzers (einmalige Absender-Verifizierung bei Brevo
+  nötig, siehe unten).
 
 ## Sicherheitsmodell: Unterschied zur Desktop-App
 
@@ -36,14 +40,27 @@ die Daten nicht entschlüsseln können). Ein zustandsloser Web-Server kann diese
 sinnvoll abbilden: jeder Request (z.B. „E-Mail jetzt prüfen“) braucht Zugriff auf die Zugangsdaten,
 ohne dass der Nutzer sein Passwort bei jeder Aktion erneut eingibt.
 
-Stattdessen: normales Login per Passwort-Hash (bcrypt), und das SMTP/IMAP-Passwort jedes Nutzers wird
+Stattdessen: normales Login per Passwort-Hash (bcrypt), und das IMAP-Passwort jedes Nutzers wird
 serverseitig mit einem aus `APP_SECRET_KEY` abgeleiteten Schlüssel verschlüsselt in der Datenbank
 abgelegt („at rest“). Das schützt bei einem reinen Datenbank-Diebstahl, nicht aber vor dem Betreiber
 des Servers selbst. Für eine rein persönliche Nutzung (ein Nutzer betreibt seine eigene Instanz) ist
 das ein sinnvoller, praxistauglicher Kompromiss.
 
-Der Anthropic-API-Key ist kein Nutzer-Secret mehr, sondern eine reine Server-Konfiguration
-(`ANTHROPIC_API_KEY`) - der Betreiber trägt die Claude-API-Kosten für alle Nutzer gemeinsam.
+Der Anthropic-API-Key und der Brevo-API-Key sind keine Nutzer-Secrets mehr, sondern reine
+Server-Konfiguration (`ANTHROPIC_API_KEY`, `BREVO_API_KEY`) - der Betreiber trägt die Kosten für alle
+Nutzer gemeinsam.
+
+## Warum E-Mail-Versand über eine API statt rohem SMTP
+
+Render blockiert seit September 2025 auf dem kostenlosen Web-Service-Tier ausgehende Verbindungen zu
+allen SMTP-Ports (25/465/587) komplett - unabhängig von den hinterlegten Zugangsdaten (Details:
+[Render-Changelog](https://render.com/changelog/free-web-services-will-no-longer-allow-outbound-traffic-to-smtp-ports)).
+Der Versand läuft daher über die HTTPS-API von [Brevo](https://www.brevo.com) (kostenlos: 300
+Mails/Tag). Damit E-Mails weiterhin von der eigenen Adresse jedes Nutzers aus verschickt werden,
+muss jeder Nutzer seine Absenderadresse einmalig bei Brevo verifizieren (Einstellungen →
+„Absender-Verifizierung“ → Bestätigungslink in der zugeschickten E-Mail anklicken). IMAP (Port 993,
+Postfach-Abruf für die Statusverfolgung) ist von der Render-Sperre nicht betroffen und bleibt
+unverändert.
 
 ## Lokale Entwicklung
 
@@ -59,7 +76,7 @@ cd backend
 python -m venv .venv
 .venv/Scripts/activate   # Windows; unter Linux/Mac: source .venv/bin/activate
 pip install -r requirements.txt
-cp .env.example .env     # DATABASE_URL, APP_SECRET_KEY und ANTHROPIC_API_KEY eintragen
+cp .env.example .env     # DATABASE_URL, APP_SECRET_KEY, ANTHROPIC_API_KEY und BREVO_API_KEY eintragen
 uvicorn app.main:app --reload
 ```
 
@@ -107,6 +124,8 @@ Environment) eingetragen.
      - `DATABASE_URL` = Connection-String von Neon/Supabase (siehe oben)
      - `ANTHROPIC_API_KEY` = ein einziger Key des Betreibers (console.anthropic.com), gilt für alle
        Nutzer gemeinsam
+     - `BREVO_API_KEY` = ein einziger Key des Betreibers (app.brevo.com → Settings → API Keys), gilt
+       für alle Nutzer gemeinsam (siehe „Warum E-Mail-Versand über eine API“ oben)
      - `CORS_ORIGINS` = die URL des Frontend-Services, z.B. `https://job-assistent-frontend.onrender.com`
    - **Frontend** (`job-assistent-frontend` → Environment):
      - `VITE_API_URL` = die URL des Backend-Services, z.B. `https://job-assistent-backend.onrender.com`
@@ -117,8 +136,9 @@ Environment) eingetragen.
    `create_static_site`-API-Weg nicht automatisch gesetzt).
 5. Beide Services prüfen (Backend: `<backend-url>/health` sollte `{"status":"ok"}` liefern; Frontend:
    Login-Seite sollte laden, auch bei direktem Aufruf von Unterseiten wie `/profil`).
-6. Jeder Nutzer legt sich über „Registrieren“ ein eigenes Konto an und hinterlegt in den
-   Einstellungen nur die eigenen SMTP/IMAP-Zugangsdaten - keinen eigenen Claude-Key.
+6. Jeder Nutzer legt sich über „Registrieren“ ein eigenes Konto an, hinterlegt in den Einstellungen
+   nur die eigenen IMAP-Zugangsdaten (keinen eigenen Claude- oder Brevo-Key) und stößt einmalig die
+   Absender-Verifizierung für die eigene E-Mail-Adresse an.
 
 ### Bekannte Einschränkungen des kostenlosen Tiers
 
@@ -140,6 +160,7 @@ Environment) eingetragen.
 | `DATABASE_URL` | ja | Postgres-Connection-String (Neon/Supabase/eigene Instanz) |
 | `APP_SECRET_KEY` | ja | Langer Zufallsstring; Basis für JWT-Signierung und Verschlüsselung der Zugangsdaten |
 | `ANTHROPIC_API_KEY` | ja | Ein globaler Claude-Key des Betreibers, gilt für alle Nutzer |
+| `BREVO_API_KEY` | ja | Ein globaler Brevo-Key des Betreibers für den E-Mail-Versand, gilt für alle Nutzer |
 | `CORS_ORIGINS` | ja | Kommagetrennte Liste erlaubter Frontend-Origins |
 
 ### Frontend (`frontend/.env`)

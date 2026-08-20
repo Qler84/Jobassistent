@@ -30,6 +30,14 @@ class Settings(BaseSettings):
     # kein Nutzer-Login noetig - der Betreiber traegt die Claude-API-Kosten.
     anthropic_api_key: str
 
+    # Ein einziger, vom Betreiber bereitgestellter Brevo-API-Key fuer den
+    # E-Mail-Versand aller Nutzer (siehe core/email_send.py). Render blockiert
+    # auf dem kostenlosen Tier ausgehende SMTP-Ports komplett, daher laeuft
+    # der Versand ueber die HTTPS-API. Der tatsaechliche Absender bleibt pro
+    # Nutzer dessen eigene Adresse (muss einmalig bei Brevo verifiziert
+    # werden) - IMAP (Postfach-Abruf) bleibt unveraendert direkt bei web.de.
+    brevo_api_key: str
+
     jwt_algorithm: str = "HS256"
     access_token_expire_minutes: int = 60 * 24 * 7  # 7 Tage
 

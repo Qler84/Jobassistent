@@ -4,12 +4,11 @@ from pydantic import BaseModel
 
 
 class SettingsOut(BaseModel):
-    smtp_host: str | None
-    smtp_port: int | None
     imap_host: str | None
     imap_port: int | None
     email_user: str | None
     has_email_password: bool
+    sender_verified: bool
     claude_model: str
     imap_auto_check_enabled: bool
     imap_auto_check_minutes: int
@@ -18,8 +17,6 @@ class SettingsOut(BaseModel):
 
 
 class SettingsUpdate(BaseModel):
-    smtp_host: str | None = None
-    smtp_port: int | None = None
     imap_host: str | None = None
     imap_port: int | None = None
     email_user: str | None = None
@@ -32,16 +29,13 @@ class SettingsUpdate(BaseModel):
     auto_send_enabled: bool = False
 
 
-class SmtpTestRequest(BaseModel):
-    """Testet die aktuell im Formular stehenden Werte, nicht zwingend die
-    bereits gespeicherten - erlaubt 'Testen' vor dem 'Speichern'. Leere
-    Felder fallen auf die gespeicherten Zugangsdaten zurueck."""
-    smtp_host: str | None = None
-    smtp_port: int | None = None
+class SenderVerifyRequest(BaseModel):
+    """Absenderadresse aus dem (evtl. noch ungespeicherten) Formular -
+    erlaubt das Anstossen der Verifizierung vor dem 'Speichern'."""
     email_user: str | None = None
-    email_password: str | None = None
+    sender_name: str | None = None
 
 
-class SmtpTestResult(BaseModel):
-    erfolgreich: bool
+class SenderVerifyResult(BaseModel):
+    verifiziert: bool
     hinweis: str
