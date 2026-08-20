@@ -138,11 +138,21 @@ ERKANNTER_ANSPRECHPARTNER: <Name oder leer>
     try:
         response = client.messages.create(
             model=model or settings.default_claude_model,
-            max_tokens=1500,
+            # Grosszuegiger Puffer ueber die angeforderten ~250-350 Woerter hinaus:
+            # deutsche Bewerbungsschreiben werden von Claude in der Praxis oft
+            # laenger als angewiesen, und ein zu knappes Limit fuehrt zu einem
+            # mitten im Satz abgeschnittenen Brief statt eines Fehlers.
+            max_tokens=4000,
             messages=[{"role": "user", "content": prompt}],
         )
     except anthropic.APIError as exc:
         raise CoverLetterError(f"Claude-API-Fehler: {exc}") from exc
+
+    if response.stop_reason == "max_tokens":
+        raise CoverLetterError(
+            "Das Anschreiben wurde von Claude mitten im Satz abgebrochen (Antwort zu lang). "
+            "Bitte erneut generieren."
+        )
 
     raw = "".join(block.text for block in response.content if block.type == "text").strip()
     return _parse_response(raw)
